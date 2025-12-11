@@ -94,17 +94,14 @@ export async function fetchProducts(
     // params.append('status', 'published');
     
     const url = `${API_BASE_URL}/products?${params.toString()}`;
-    console.log('Fetching products from:', url);
     const response = await fetch(url);
     
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('API Error Response:', errorText);
       throw new Error(`Failed to fetch products: ${response.statusText}`);
     }
     
     const data: ProductsResponse = await response.json();
-    console.log('Products received:', data);
     return data.data || [];
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -133,7 +130,9 @@ export async function fetchProductById(id: string): Promise<Product | null> {
       throw new Error(`Failed to fetch product: ${response.statusText}`);
     }
     
-    const product: Product = await response.json();
+    const data = await response.json();
+    // Backend returns { product: {...} }, extract the nested object
+    const product: Product = data.product || data;
     return product;
   } catch (error) {
     console.error('Error fetching product:', error);
@@ -214,6 +213,95 @@ export async function getMeta(): Promise<MetaSummary> {
     return data;
   } catch (error) {
     console.error('Error fetching metadata:', error);
+    throw error;
+  }
+}
+
+/**
+ * Get single order by ID with items
+ */
+export async function getOrderById(id: number): Promise<Order & { items: any[] }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/${id}`);
+    
+    if (!response.ok) {
+      throw new Error(`Failed to fetch order: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error fetching order:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update order status
+ */
+export async function updateOrderStatus(id: number, status: string): Promise<Order> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/orders/${id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status }),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to update order status: ${response.statusText}`);
+    }
+    
+    const order: Order = await response.json();
+    return order;
+  } catch (error) {
+    console.error('Error updating order status:', error);
+    throw error;
+  }
+}
+
+/**
+ * Delete product
+ */
+export async function deleteProduct(id: number): Promise<void> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: 'DELETE',
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete product: ${response.statusText}`);
+    }
+  } catch (error) {
+    console.error('Error deleting product:', error);
+    throw error;
+  }
+}
+
+/**
+ * Update product
+ */
+export async function updateProduct(id: number, updates: Partial<Product>): Promise<Product> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({}));
+      throw new Error(errorData.message || `Failed to update product: ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    return data.product || data;
+  } catch (error) {
+    console.error('Error updating product:', error);
     throw error;
   }
 }

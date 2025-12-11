@@ -34,8 +34,6 @@ const ProductDetail = () => {
         setLoading(true);
         setError(null);
         const data = await fetchProductById(id);
-        console.log('Product loaded:', data);
-        console.log('Product price type:', typeof data?.price, 'value:', data?.price);
         setProduct(data);
       } catch (err) {
         console.error('Failed to load product:', err);
