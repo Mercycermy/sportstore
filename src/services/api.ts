@@ -166,27 +166,76 @@ export async function createOrder(orderData: OrderRequest): Promise<Order> {
   }
 }
 
+export interface OrderListMeta {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+  status?: string;
+  q?: string;
+}
+
+export interface OrderListResponse {
+  data: Order[];
+  meta: OrderListMeta;
+}
+
+export interface OrderQuery {
+  page?: number;
+  perPage?: number;
+  q?: string;
+  status?: string;
+  sortBy?: 'createdAt' | 'status' | 'total';
+  sortOrder?: 'asc' | 'desc';
+}
+
 /**
- * Fetch all orders
+ * Fetch orders with filters, pagination, sorting
  */
-export async function getOrders(): Promise<Order[]> {
+export async function getOrders(params: OrderQuery = {}): Promise<OrderListResponse> {
   try {
-    const response = await fetch(`${API_BASE_URL}/orders`);
-    
+    const query = new URLSearchParams();
+    if (params.page) query.append('page', String(params.page));
+    if (params.perPage) query.append('perPage', String(params.perPage));
+    if (params.q) query.append('q', params.q);
+    if (params.status) query.append('status', params.status);
+    if (params.sortBy) query.append('sortBy', params.sortBy);
+    if (params.sortOrder) query.append('sortOrder', params.sortOrder);
+
+    const response = await fetch(`${API_BASE_URL}/orders${query.toString() ? `?${query.toString()}` : ''}`);
     if (!response.ok) {
       throw new Error(`Failed to fetch orders: ${response.statusText}`);
     }
-    
-    const data = await response.json();
-    // Backend returns array of orders with totalCents, convert to total
-    return data.map((order: any) => ({
+
+    const payload = await response.json();
+    const dataArray = Array.isArray(payload) ? payload : payload.data;
+    const meta: OrderListMeta = Array.isArray(payload)
+      ? { page: 1, perPage: dataArray.length, total: dataArray.length, totalPages: 1 }
+      : payload.meta;
+
+    const data = dataArray.map((order: any) => ({
       ...order,
       total: order.totalCents ? order.totalCents / 100 : 0,
     }));
+
+    return { data, meta };
   } catch (error) {
     console.error('Error fetching orders:', error);
     throw error;
   }
+}
+
+export async function exportOrdersCsv(params: OrderQuery = {}): Promise<Blob> {
+  const query = new URLSearchParams();
+  if (params.q) query.append('q', params.q);
+  if (params.status) query.append('status', params.status);
+  const response = await fetch(`${API_BASE_URL}/orders/export${query.toString() ? `?${query.toString()}` : ''}`);
+  if (!response.ok) {
+    throw new Error(`Failed to export orders: ${response.statusText}`);
+  }
+  return response.blob();
 }
 
 /**

@@ -82,9 +82,9 @@ export default function Dashboard() {
     async function loadData() {
       try {
         setLoading(true);
-        const [summary, orders] = await Promise.all([
+        const [summary, orderResult] = await Promise.all([
           getMeta(),
-          getOrders().catch(() => []),
+          getOrders({ perPage: 5, sortBy: 'createdAt', sortOrder: 'desc' }).catch(() => ({ data: [] })),
         ]);
 
         if (cancelled) return;
@@ -95,7 +95,12 @@ export default function Dashboard() {
           leads: summary.leads || 0,
           revenue: summary.revenue,
         });
-        setRecentOrders(orders.slice(0, 5));
+        const recent = Array.isArray((orderResult as any).data)
+          ? (orderResult as any).data
+          : Array.isArray(orderResult)
+          ? orderResult
+          : [];
+        setRecentOrders(recent.slice(0, 5));
       } catch (error) {
         console.error('Failed to load dashboard data', error);
       } finally {

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getOrders, updateOrderStatus, getOrderById, type Order } from '../../services/api';
+import { getOrders, updateOrderStatus, getOrderById, exportOrdersCsv, type Order, type OrderListMeta } from '../../services/api';
 import {
   STATUS_COLORS,
   STATUS_LABELS,
@@ -13,24 +13,59 @@ import { X } from 'lucide-react';
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
+  const [meta, setMeta] = useState<OrderListMeta | null>(null);
   const [selectedOrder, setSelectedOrder] = useState<(Order & { items?: any[] }) | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [updatingStatus, setUpdatingStatus] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'status' | 'total'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [perPage, setPerPage] = useState(10);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     loadOrders();
-  }, []);
+  }, [page, perPage, sortBy, sortOrder, statusFilter]);
 
   async function loadOrders() {
     try {
       setLoading(true);
-      const data = await getOrders();
-      setOrders(data);
+      const result = await getOrders({
+        page,
+        perPage,
+        q: searchTerm,
+        status: statusFilter || undefined,
+        sortBy,
+        sortOrder,
+      });
+      setOrders(result.data);
+      setMeta(result.meta);
     } catch (error) {
       console.error('Failed to load orders', error);
       setOrders([]);
     } finally {
       setLoading(false);
+    }
+  }
+
+  function handleSearchSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setPage(1);
+    void loadOrders();
+  }
+
+  async function handleExport() {
+    try {
+      const blob = await exportOrdersCsv({ q: searchTerm, status: statusFilter || undefined });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'orders.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      alert('Failed to export orders');
     }
   }
 
@@ -69,11 +104,82 @@ export default function OrdersPage() {
   }
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-bold">Orders Management</h2>
-        <div className="text-sm text-gray-600">
-          Total: {orders.length} orders
+    <div className="p-6 space-y-4">
+      <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 className="text-2xl font-bold">Orders Management</h2>
+          <p className="text-gray-600 text-sm">Track and manage all customer orders</p>
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={handleExport}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50"
+          >
+            Download CSV
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2 w-full md:max-w-xl">
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder="Search by order #, customer, email"
+            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+          <button
+            type="submit"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+          >
+            Search
+          </button>
+        </form>
+
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value="">All Statuses</option>
+            <option value="pending">Pending</option>
+            <option value="paid">Paid</option>
+            <option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+            <option value="refunded">Refunded</option>
+            <option value="failed">Failed</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value="createdAt">Sort by Date</option>
+            <option value="status">Sort by Status</option>
+            <option value="total">Sort by Total</option>
+          </select>
+
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as any)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value="desc">Desc</option>
+            <option value="asc">Asc</option>
+          </select>
+
+          <select
+            value={perPage}
+            onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value={10}>10 / page</option>
+            <option value={20}>20 / page</option>
+            <option value={50}>50 / page</option>
+          </select>
         </div>
       </div>
 
@@ -194,6 +300,30 @@ export default function OrdersPage() {
               )}
             </tbody>
           </table>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between text-sm text-gray-600">
+        <div>
+          {meta ? (
+            <>Page {meta.page} of {meta.totalPages} · Total {meta.total} orders</>
+          ) : null}
+        </div>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={meta ? meta.page <= 1 : true}
+            className="px-3 py-2 border rounded-lg disabled:opacity-50"
+          >
+            Previous
+          </button>
+          <button
+            onClick={() => setPage((p) => (meta ? Math.min(meta.totalPages, p + 1) : p + 1))}
+            disabled={meta ? meta.page >= meta.totalPages : true}
+            className="px-3 py-2 border rounded-lg disabled:opacity-50"
+          >
+            Next
+          </button>
         </div>
       </div>
 
