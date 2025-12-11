@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { MessageCircle, Menu, X } from 'lucide-react';
+import { Send, Menu, X } from 'lucide-react';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
@@ -114,13 +114,13 @@ const Header = () => {
               Get a Quote
             </Link>
             <a
-              href="https://wa.me/251900000000"
+              href="https://t.me/dinksportw"
               target="_blank"
               rel="noopener noreferrer"
-              className="bg-[#25D366] p-2 rounded-full hover:bg-[#1fb855] transition-colors"
-              aria-label="WhatsApp"
+              className="bg-[#0088cc] p-2 rounded-full hover:bg-[#007ab8] transition-colors"
+              aria-label="Telegram"
             >
-              <MessageCircle className="w-5 h-5 text-white" />
+              <Send className="w-5 h-5 text-white" />
             </a>
           </div>
 
@@ -193,13 +193,13 @@ const Header = () => {
                   Get a Quote
                 </Link>
                 <a
-                  href="https://wa.me/251900000000"
+                  href="https://t.me/dinksportw"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="bg-[#25D366] p-2 rounded-full hover:bg-[#1fb855]"
-                  aria-label="WhatsApp"
+                  className="bg-[#0088cc] p-2 rounded-full hover:bg-[#007ab8]"
+                  aria-label="Telegram"
                 >
-                  <MessageCircle className="w-5 h-5 text-white" />
+                  <Send className="w-5 h-5 text-white" />
                 </a>
               </div>
             </div>

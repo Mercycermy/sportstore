@@ -11,7 +11,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
 
   return (
     <Link to={`/product/${product.id}`} className="group">
-      <div className="bg-white rounded-lg shadow-md overflow-hidden transition-all duration-300 hover:shadow-xl">
+      <div className="bg-white shadow-md border border-gray-100 overflow-hidden transition-all duration-300 hover:shadow-xl">
         <div className="relative overflow-hidden aspect-square">
           <img
             src={productImage}
@@ -27,12 +27,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
           )}
           <div className="absolute top-3 right-3 flex flex-col gap-2">
             {product.isNew && (
-              <span className="bg-[#D92128] text-white text-xs font-bold px-3 py-1 rounded-full">
+              <span className="bg-[#D92128] text-white text-xs font-semibold px-2 py-1 rounded-sm">
                 NEW
               </span>
             )}
             {product.isBestSeller && (
-              <span className="bg-[#1A1A1A] text-white text-xs font-bold px-3 py-1 rounded-full">
+              <span className="bg-[#1A1A1A] text-white text-xs font-semibold px-2 py-1 rounded-sm">
                 BEST SELLER
               </span>
             )}

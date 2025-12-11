@@ -123,8 +123,7 @@ const HeroSection = ({ heroImages = [] }: { heroImages?: string[] }) => {
             </div>
         </div>
         
-        {/* Decorative Red Line following the cut */}
-        <div className="absolute top-0 bottom-0 left-[15%] w-2 bg-[#D92128] hidden lg:block -translate-x-1 z-20 skew-x-[0deg]"></div>
+        {/* Decorative red line removed per request */}
       </div>
     </section>
   );
