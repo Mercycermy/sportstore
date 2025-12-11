@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { Swiper, SwiperSlide } from 'swiper/react';
-import { Autoplay, Pagination, EffectFade } from 'swiper/modules';
+// Swiper is used inside the HeroSection component; no direct imports needed here
 import football3 from '../assets/football3.jpg';
 import football2 from '../assets/football2.jpg';
 import football from '../assets/football.jpg';
@@ -9,88 +8,16 @@ import kits from '../assets/kits.jpg';
 import image4 from '../assets/image4.jpg';
 import { Flag, Globe, Plane, Droplet, Wind, Shield } from 'lucide-react';
 
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/effect-fade';
-// Faint wing line-art for bottom-right decoration
-const WingLineArt = () => (
-  <svg viewBox="0 0 240 160" xmlns="http://www.w3.org/2000/svg" className="w-full h-full text-gray-300">
-    <path d="M15 120 C 60 90, 120 70, 220 60" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" />
-    <path d="M20 140 C 80 105, 150 90, 230 80" stroke="currentColor" strokeWidth="1.5" fill="none" strokeLinecap="round" />
-    <path d="M30 155 C 90 120, 170 110, 235 95" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round" />
-  </svg>
-);
+import HeroSection from '../components/HeroSection';
+
+// (Removed unused WingLineArt - not needed when HeroSection provides decorations)
 
 const Home = () => {
-  const heroImages = [football3, football2, football];
+  const heroImages: string[] = [football3, football2, football];
 
   return (
     <div className="min-h-screen">
-      {/* HERO SECTION: Curved left slider + branding right */}
-      <section className="relative min-h-[85vh] flex flex-col md:flex-row items-stretch bg-white overflow-hidden pt-32 sm:pt-28 md:pt-24">
-        {/* LEFT: Curved framed slider (SVG clipPath) */}
-        <div className="relative w-full md:w-[55%] h-[360px] md:h-[78vh]">
-          <svg className="absolute inset-0 w-full h-full" viewBox="0 0 800 600" preserveAspectRatio="none">
-            <defs>
-              <clipPath id="heroClip" clipPathUnits="userSpaceOnUse">
-                <path d="M0,0 H560 Q780,300 560,600 H0 Z" />
-              </clipPath>
-            </defs>
-            <g clipPath="url(#heroClip)">
-              <rect width="800" height="600" fill="#ffffff" />
-              <foreignObject x="0" y="0" width="800" height="600">
-                <div className="w-full h-full">
-                  <Swiper
-                    modules={[Autoplay, Pagination, EffectFade]}
-                    effect="fade"
-                    autoplay={{ delay: 3000, disableOnInteraction: false }}
-                    pagination={{ clickable: true }}
-                    loop
-                    className="w-full h-full"
-                  >
-                    {heroImages.map((image, index) => (
-                      <SwiperSlide key={index}>
-                        <img src={image} alt={`Look ${index + 1}`} className="w-full h-[360px] md:h-[78vh] object-cover" />
-                      </SwiperSlide>
-                    ))}
-                  </Swiper>
-                </div>
-              </foreignObject>
-            </g>
-            {/* White outline then red stroke along the curve for depth */}
-            <path d="M0,0 H560 Q780,300 560,600 H0 Z" fill="none" stroke="#ffffff" strokeWidth="18" />
-            <path d="M0,0 H560 Q780,300 560,600 H0 Z" fill="none" stroke="#D92128" strokeWidth="8" />
-          </svg>
-        </div>
-
-        {/* RIGHT: Headline, antelope art, CTA */}
-        <div className="relative flex-1 flex items-center">
-          <div className="relative z-10 w-full px-6 sm:px-10 md:px-12 lg:px-16 py-10 md:py-0">
-            <div className="ml-auto text-center md:text-right max-w-xl">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-black text-[#D92128] leading-[1.05] tracking-tight mb-6">
-                GEAR UP.<br />
-                STAND OUT.<br />
-                GO BEYOND.
-              </h1>
-              <p className="text-sm md:text-base text-gray-600 md:text-gray-500 mb-8 md:mb-10">
-                From the grind to the spotlight — DINK Sports Wear is built for those who move with purpose.
-              </p>
-              <div className="flex md:justify-end justify-center">
-                <Link
-                  to="/shop"
-                  className="inline-flex items-center justify-center bg-[#D92128] hover:bg-red-700 text-white px-10 py-3 rounded-full font-semibold shadow-xl transition-all duration-300 hover:scale-[1.03] active:scale-[0.98] focus:outline-none focus:ring-4 focus:ring-red-300"
-                >
-                  BUY NOW
-                </Link>
-              </div>
-            </div>
-          </div>
-          {/* Faint wing graphic */}
-          <div className="hidden md:block absolute bottom-6 right-6 w-40 h-28 opacity-10 pointer-events-none">
-            <WingLineArt />
-          </div>
-        </div>
-      </section>
+      <HeroSection heroImages={heroImages} />
 
       <section className="py-12 bg-[#F4F4F4]">
         <div className="container mx-auto px-6">
