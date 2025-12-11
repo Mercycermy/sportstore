@@ -1,6 +1,6 @@
 import { useParams, Link } from 'react-router-dom';
 import { products } from '../data/products';
-import { Phone, MessageCircle, Package, Droplet, Wind, Shield, Activity } from 'lucide-react';
+import { Phone, Send, Package, Droplet, Wind, Shield, Activity } from 'lucide-react';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -37,18 +37,23 @@ const ProductDetail = () => {
           </Link>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 bg-white rounded-lg shadow-lg p-8">
-          <div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white rounded-lg shadow-lg p-6 lg:p-8 items-start">
+          <div className="flex flex-col gap-4">
             <div className="mb-4">
               <img
                 src={product.images[0]}
                 alt={product.name}
-                className="w-full rounded-lg shadow-md"
+                className="w-full shadow-md border border-gray-100"
               />
+            </div>
+            <div className="hidden md:flex gap-3">
+              {product.images.slice(1,4).map((img, i) => (
+                <img key={i} src={img} alt={`${product.name} ${i+1}`} className="w-24 h-24 object-cover border border-gray-100" />
+              ))}
             </div>
           </div>
 
-          <div>
+          <div className="pt-1">
             <div className="flex gap-2 mb-4">
               {product.isNew && (
                 <span className="bg-[#D92128] text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -129,26 +134,36 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-3">
               <a
                 href="tel:+251900000000"
-                className="w-full bg-[#D92128] text-white py-4 rounded-lg font-medium hover:bg-[#b91a20] transition-colors flex items-center justify-center gap-3"
+                className="flex-1 sm:flex-none min-w-[180px] inline-flex items-center justify-center gap-2 bg-[#D92128] text-white px-4 py-3 rounded-md font-semibold hover:bg-[#b91a20] transition-colors"
               >
                 <Phone className="w-5 h-5" />
-                Call to Order
+                Call
               </a>
+
               <a
-                href={`https://wa.me/251900000000?text=Hi, I'm interested in ${product.name} (${product.sku})`}
+                href={`https://t.me/dinksportw?text=${encodeURIComponent(`Hi, I'm interested in ${product.name} (${product.sku})`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full bg-[#25D366] text-white py-4 rounded-lg font-medium hover:bg-[#1fb855] transition-colors flex items-center justify-center gap-3"
+                className="flex-1 sm:flex-none min-w-[220px] inline-flex items-center justify-center gap-2 bg-[#0088cc] text-white px-4 py-3 rounded-md font-semibold hover:bg-[#007ab8] transition-colors"
               >
-                <MessageCircle className="w-5 h-5" />
-                WhatsApp Inquiry
+                <Send className="w-5 h-5" />
+                Telegram
               </a>
+
               <Link
                 to="/contact"
-                className="w-full bg-[#1A1A1A] text-white py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center"
+                className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-[#1A1A1A] text-white hover:bg-gray-800 transition-colors font-semibold"
+              >
+                Request Bulk Quote
+              </Link>
+            </div>
+            <div className="mt-4 sm:hidden">
+              <Link
+                to="/contact"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-[#1A1A1A] text-white hover:bg-gray-800 transition-colors font-semibold"
               >
                 Request Bulk Quote
               </Link>
