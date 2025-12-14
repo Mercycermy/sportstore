@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { fetchProductById, createOrder, Product as ApiProduct } from '../services/api';
-import { Phone, MessageCircle, Package, Droplet, Wind, Shield, Activity, X, ShoppingCart } from 'lucide-react';
+import { Phone, MessageCircle, Package, Droplet, Wind, Shield, Activity, X, ShoppingCart, Send } from 'lucide-react';
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -326,22 +326,29 @@ const ProductDetail = () => {
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 bg-white rounded-lg shadow-lg p-6 lg:p-8 items-start">
-          <div className="flex flex-col gap-4">
-            <div className="mb-4">
+          <div className="flex flex-col gap-4 lg:max-w-[520px]">
+            <div className="mb-2 rounded-lg overflow-hidden border border-gray-100 bg-gray-50 aspect-[4/5] w-full">
               <img
                 src={product.images && product.images.length > 0 ? product.images[0] : product.coverImage}
                 alt={product.name}
-                className="w-full shadow-md border border-gray-100"
+                className="w-full h-full object-cover"
               />
             </div>
-            <div className="hidden md:flex gap-3">
-              {product.images.slice(1,4).map((img, i) => (
-                <img key={i} src={img} alt={`${product.name} ${i+1}`} className="w-24 h-24 object-cover border border-gray-100" />
-              ))}
-            </div>
+            {product.images.length > 1 && (
+              <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
+                {product.images.slice(1, 5).map((img, i) => (
+                  <img
+                    key={i}
+                    src={img}
+                    alt={`${product.name} ${i + 1}`}
+                    className="w-full h-20 object-cover rounded-md border border-gray-100"
+                  />
+                ))}
+              </div>
+            )}
           </div>
 
-          <div className="pt-1">
+          <div className="pt-1 space-y-6">
             <div className="flex gap-2 mb-4">
               {product.isNew && (
                 <span className="bg-[#D92128] text-white text-xs font-bold px-3 py-1 rounded-full">
@@ -446,11 +453,11 @@ const ProductDetail = () => {
               </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <button
                 onClick={() => setShowOrderModal(true)}
                 disabled={isOutOfStock}
-                className={`w-full py-4 rounded-lg font-medium transition-colors flex items-center justify-center gap-3 ${
+                className={`w-full py-3 rounded-lg font-semibold transition-colors flex items-center justify-center gap-3 ${
                   isOutOfStock
                     ? 'bg-gray-400 text-white cursor-not-allowed'
                     : 'bg-[#D92128] text-white hover:bg-[#b91a20]'
@@ -459,9 +466,10 @@ const ProductDetail = () => {
                 <ShoppingCart className="w-5 h-5" />
                 {isOutOfStock ? 'Out of Stock' : 'Order Now'}
               </button>
+
               <a
                 href="tel:+251900000000"
-                className="w-full bg-[#1A1A1A] text-white py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors flex items-center justify-center gap-3"
+                className="w-full bg-[#1A1A1A] text-white py-3 rounded-lg font-semibold hover:bg-gray-800 transition-colors flex items-center justify-center gap-3"
               >
                 <Phone className="w-5 h-5" />
                 Call Us
@@ -471,7 +479,7 @@ const ProductDetail = () => {
                 href={`https://wa.me/251900000000?text=Hi, I'm interested in ${product.name}${product.sku ? ` (${product.sku})` : ''}`}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 sm:flex-none min-w-[220px] inline-flex items-center justify-center gap-2 bg-[#0088cc] text-white px-4 py-3 rounded-md font-semibold hover:bg-[#007ab8] transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 bg-[#0088cc] text-white px-4 py-3 rounded-lg font-semibold hover:bg-[#007ab8] transition-colors"
               >
                 <Send className="w-5 h-5" />
                 Telegram
@@ -479,15 +487,7 @@ const ProductDetail = () => {
 
               <Link
                 to="/contact"
-                className="hidden sm:inline-flex items-center justify-center gap-2 px-4 py-3 rounded-md bg-[#1A1A1A] text-white hover:bg-gray-800 transition-colors font-semibold"
-              >
-                Request Bulk Quote
-              </Link>
-            </div>
-            <div className="mt-4 sm:hidden">
-              <Link
-                to="/contact"
-                className="w-full bg-gray-200 text-gray-700 py-4 rounded-lg font-medium hover:bg-gray-300 transition-colors flex items-center justify-center"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-200 text-gray-800 hover:bg-gray-300 transition-colors font-semibold"
               >
                 Request Bulk Quote
               </Link>

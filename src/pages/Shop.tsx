@@ -31,8 +31,8 @@ const Shop = () => {
         const category = selectedCategory !== 'all' ? selectedCategory : undefined;
         const gender = selectedGender !== 'all' ? selectedGender : undefined;
         
-        const data = await fetchProducts(category, gender);
-        setProducts(data);
+        const result = await fetchProducts(category, gender);
+        setProducts(result.data);
       } catch (err) {
         console.error('Failed to load products:', err);
         setError('Failed to load products. Please try again later.');

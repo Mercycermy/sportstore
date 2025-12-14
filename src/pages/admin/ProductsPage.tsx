@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { fetchProducts, updateProduct, deleteProduct, type Product } from '../../services/api';
+import { fetchProducts, updateProduct, deleteProduct, type Product, type ProductListMeta } from '../../services/api';
 import { Trash2, Edit2, Save, X, Plus } from 'lucide-react';
 import CreateProductModal from '../../components/CreateProductModal';
 
@@ -19,19 +19,34 @@ interface EditingProduct {
 export default function ProductsPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
+  const [meta, setMeta] = useState<ProductListMeta | null>(null);
   const [editingProduct, setEditingProduct] = useState<EditingProduct | null>(null);
   const [updating, setUpdating] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [sortBy, setSortBy] = useState<'createdAt' | 'price' | 'stock' | 'name' | 'status'>('createdAt');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [perPage, setPerPage] = useState(10);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
-    loadProducts();
-  }, []);
+    void loadProducts();
+  }, [page, perPage, sortBy, sortOrder, statusFilter, searchTerm]);
 
   async function loadProducts() {
     try {
       setLoading(true);
-      const data = await fetchProducts();
-      setProducts(data);
+      const result = await fetchProducts(undefined, undefined, {
+        page,
+        perPage,
+        q: searchTerm,
+        status: statusFilter || undefined,
+       // sortBy,
+        sortOrder,
+      });
+      setProducts(result.data);
+      setMeta(result.meta);
     } catch (error) {
       console.error('Failed to load products', error);
       setProducts([]);
@@ -42,7 +57,7 @@ export default function ProductsPage() {
 
   function handleCreateSuccess() {
     setShowCreateModal(false);
-    loadProducts();
+    void loadProducts();
   }
 
   function startEdit(product: Product) {
@@ -128,6 +143,65 @@ export default function ProductsPage() {
           <Plus className="w-5 h-5" />
           Create Product
         </button>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-lg p-4 mb-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+        <form
+          onSubmit={(e) => e.preventDefault()}
+          className="flex flex-col sm:flex-row gap-2 w-full md:max-w-xl"
+        >
+          <input
+            type="text"
+            value={searchTerm}
+            onChange={(e) => { setSearchTerm(e.target.value); setPage(1); }}
+            placeholder="Search products by name"
+            className="flex-1 px-3 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500"
+          />
+        </form>
+
+        <div className="flex flex-wrap gap-2">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value="">All Statuses</option>
+            <option value="published">Published</option>
+            <option value="unpublished">Unpublished</option>
+            <option value="archived">Archived</option>
+          </select>
+
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as any)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value="createdAt">Sort by Date</option>
+            <option value="price">Sort by Price</option>
+            <option value="stock">Sort by Stock</option>
+            <option value="name">Sort by Name</option>
+            <option value="status">Sort by Status</option>
+          </select>
+
+          <select
+            value={sortOrder}
+            onChange={(e) => setSortOrder(e.target.value as any)}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value="desc">Desc</option>
+            <option value="asc">Asc</option>
+          </select>
+
+          <select
+            value={perPage}
+            onChange={(e) => { setPerPage(Number(e.target.value)); setPage(1); }}
+            className="px-3 py-2 border rounded-lg text-sm"
+          >
+            <option value={10}>10 / page</option>
+            <option value={20}>20 / page</option>
+            <option value={50}>50 / page</option>
+          </select>
+        </div>
       </div>
 
       {loading && (
@@ -314,6 +388,30 @@ export default function ProductsPage() {
           </table>
         </div>
       </div>
+      )}
+
+      {!loading && meta && (
+        <div className="flex items-center justify-between text-sm text-gray-600 mt-4">
+          <div>
+            Page {meta.page} of {meta.totalPages} · Total {meta.total} products
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={meta.page <= 1}
+              className="px-3 py-2 border rounded-lg disabled:opacity-50"
+            >
+              Previous
+            </button>
+            <button
+              onClick={() => setPage((p) => Math.min(meta.totalPages, p + 1))}
+              disabled={meta.page >= meta.totalPages}
+              className="px-3 py-2 border rounded-lg disabled:opacity-50"
+            >
+              Next
+            </button>
+          </div>
+        </div>
       )}
 
       <CreateProductModal

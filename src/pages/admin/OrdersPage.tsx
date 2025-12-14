@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { getOrders, updateOrderStatus, getOrderById, exportOrdersCsv, type Order, type OrderListMeta } from '../../services/api';
+import { useEffect, useRef, useState } from 'react';
+import { getOrders, updateOrderStatus, getOrderById, exportOrdersCsv, getNewOrdersSince, type Order, type OrderListMeta } from '../../services/api';
 import {
   STATUS_COLORS,
   STATUS_LABELS,
@@ -23,10 +23,63 @@ export default function OrdersPage() {
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
   const [perPage, setPerPage] = useState(10);
   const [page, setPage] = useState(1);
+  const [latestSeenCreatedAt, setLatestSeenCreatedAt] = useState<string | null>(null);
+  const [newOrdersCount, setNewOrdersCount] = useState(0);
+  const [newOrdersLatestAt, setNewOrdersLatestAt] = useState<string | null>(null);
+  const [newOrdersPreview, setNewOrdersPreview] = useState<
+    { id: number; orderNumber: string; customerName: string; status: string; totalCents: number | null; createdAt: string }[]
+  >([]);
+  const latestSeenRef = useRef<string | null>(null);
+
+  const BASELINE_KEY = 'orders.latestSeenCreatedAt';
+
+  function setBaseline(nextIso: string | null) {
+    if (!nextIso) return;
+    const nextTs = Date.parse(nextIso);
+    if (!Number.isFinite(nextTs)) return;
+    const currentTs = latestSeenRef.current ? Date.parse(latestSeenRef.current) : 0;
+    if (currentTs && nextTs <= currentTs) return;
+
+    const normalized = new Date(nextTs).toISOString();
+    latestSeenRef.current = normalized;
+    setLatestSeenCreatedAt(normalized);
+    try {
+      localStorage.setItem(BASELINE_KEY, normalized);
+    } catch (_) {
+      // ignore storage errors
+    }
+  }
 
   useEffect(() => {
+    const stored = (() => {
+      try {
+        return localStorage.getItem(BASELINE_KEY);
+      } catch (_) {
+        return null;
+      }
+    })();
+
+    if (stored) {
+      const ts = Date.parse(stored);
+      if (Number.isFinite(ts)) {
+        latestSeenRef.current = new Date(ts).toISOString();
+        setLatestSeenCreatedAt(latestSeenRef.current);
+      }
+    }
+
     loadOrders();
-  }, [page, perPage, sortBy, sortOrder, statusFilter]);
+  }, [page, perPage, sortBy, sortOrder, statusFilter, searchTerm]);
+
+  useEffect(() => {
+    if (!latestSeenCreatedAt) return;
+
+    void checkForNewOrders();
+    const interval = setInterval(() => {
+      void checkForNewOrders();
+    }, 15000);
+
+    return () => clearInterval(interval);
+  }, [latestSeenCreatedAt]);
 
   async function loadOrders() {
     try {
@@ -41,6 +94,21 @@ export default function OrdersPage() {
       });
       setOrders(result.data);
       setMeta(result.meta);
+
+      const latestTimestamp = result.data.reduce((acc, order) => {
+        const ts = order.createdAt ? Date.parse(order.createdAt) : 0;
+        return Number.isFinite(ts) && ts > acc ? ts : acc;
+      }, 0);
+
+      if (latestTimestamp > 0) {
+        setBaseline(new Date(latestTimestamp).toISOString());
+      } else if (!latestSeenRef.current) {
+        setBaseline(new Date().toISOString());
+      }
+
+      setNewOrdersCount(0);
+      setNewOrdersLatestAt(null);
+      setNewOrdersPreview([]);
     } catch (error) {
       console.error('Failed to load orders', error);
       setOrders([]);
@@ -49,10 +117,50 @@ export default function OrdersPage() {
     }
   }
 
+  async function checkForNewOrders() {
+    if (!latestSeenCreatedAt) return;
+
+    try {
+      const result = await getNewOrdersSince(latestSeenCreatedAt);
+      const baselineTs = latestSeenRef.current ? Date.parse(latestSeenRef.current) : 0;
+      const latestTs = result.latestCreatedAt ? Date.parse(result.latestCreatedAt as string) : 0;
+
+      // Ignore if API latest is not newer than baseline
+      if (latestTs && baselineTs && latestTs <= baselineTs) {
+        setNewOrdersCount(0);
+        setNewOrdersLatestAt(null);
+        setNewOrdersPreview([]);
+        return;
+      }
+
+      setNewOrdersCount(result.newCount || 0);
+      setNewOrdersLatestAt(result.latestCreatedAt || null);
+      setNewOrdersPreview(result.latestOrders || []);
+      if ((result.newCount || 0) === 0 && result.latestCreatedAt) {
+        // advance baseline silently when backend reports no new but returns a newer timestamp
+        setBaseline(result.latestCreatedAt);
+      }
+    } catch (error) {
+      console.error('Failed to check new orders', error);
+    }
+  }
+
+  function acknowledgeNewOrders() {
+    const nowIso = new Date().toISOString();
+    const latestTs = newOrdersLatestAt ? Date.parse(newOrdersLatestAt) : 0;
+    const bestIso = Number.isFinite(latestTs) && latestTs > 0
+      ? new Date(Math.max(latestTs, Date.parse(nowIso))).toISOString()
+      : nowIso;
+    setBaseline(bestIso);
+
+    setNewOrdersCount(0);
+    setNewOrdersLatestAt(null);
+    setNewOrdersPreview([]);
+  }
+
   function handleSearchSubmit(e: React.FormEvent) {
     e.preventDefault();
     setPage(1);
-    void loadOrders();
   }
 
   async function handleExport() {
@@ -119,6 +227,50 @@ export default function OrdersPage() {
           </button>
         </div>
       </div>
+
+      {newOrdersCount > 0 && (
+        <div className="flex flex-col gap-3 bg-blue-50 border border-blue-200 text-blue-900 px-4 py-3 rounded-lg">
+          <div className="font-medium">
+            {newOrdersCount} new {newOrdersCount === 1 ? 'order' : 'orders'} since your last refresh.
+          </div>
+
+          {newOrdersPreview.length > 0 && (
+            <div className="space-y-2 text-sm">
+              {newOrdersPreview.map((o) => (
+                <div key={o.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 bg-white/70 border border-blue-100 rounded px-3 py-2">
+                  <div>
+                    <div className="font-semibold">{o.orderNumber}</div>
+                    <div className="text-blue-800">{o.customerName}</div>
+                  </div>
+                  <div className="text-right text-xs">
+                    <div className="font-semibold">ETB {(o.totalCents ? o.totalCents / 100 : 0).toLocaleString()}</div>
+                    <div className="text-blue-700">{new Date(o.createdAt).toLocaleString()}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                setPage(1);
+                acknowledgeNewOrders();
+                void loadOrders();
+              }}
+              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+            >
+              Refresh now
+            </button>
+            <button
+              onClick={acknowledgeNewOrders}
+              className="px-3 py-2 border border-blue-200 rounded-lg hover:bg-white/60"
+            >
+              Dismiss
+            </button>
+          </div>
+        </div>
+      )}
 
       <div className="bg-white border border-gray-200 rounded-lg p-4 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <form onSubmit={handleSearchSubmit} className="flex flex-col sm:flex-row gap-2 w-full md:max-w-xl">

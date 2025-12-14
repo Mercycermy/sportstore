@@ -29,12 +29,27 @@ export interface Product {
 
 export interface ProductsResponse {
   data: Product[];
-  meta: {
-    page: number;
-    perPage: number;
-    total: string;
-    totalPages: number;
-  };
+  meta: ProductListMeta;
+}
+
+export interface ProductListMeta {
+  page: number;
+  perPage: number;
+  total: number;
+  totalPages: number;
+  sortBy?: 'createdAt' | 'price' | 'stock' | 'name' | 'status';
+  sortOrder?: 'asc' | 'desc';
+  status?: string;
+  q?: string;
+}
+
+export interface ProductQuery {
+  page?: number;
+  perPage?: number;
+  q?: string;
+  status?: string;
+  sortBy?: 'createdAt' | 'price' | 'stock' | 'name';
+  sortOrder?: 'asc' | 'desc';
 }
 
 export interface OrderRequest {
@@ -77,8 +92,9 @@ const API_BASE_URL = '/api';
  */
 export async function fetchProducts(
   category?: string,
-  gender?: string
-): Promise<Product[]> {
+  gender?: string,
+  query?: ProductQuery
+): Promise<ProductsResponse> {
   try {
     const params = new URLSearchParams();
     
@@ -90,8 +106,12 @@ export async function fetchProducts(
       params.append('gender', gender);
     }
 
-    // Fetch all products for now (comment out status filter to see all products)
-    // params.append('status', 'published');
+    if (query?.q) params.append('q', query.q);
+    if (query?.status) params.append('status', query.status);
+    if (query?.page) params.append('page', String(query.page));
+    if (query?.perPage) params.append('perPage', String(query.perPage));
+    if (query?.sortBy) params.append('sortBy', query.sortBy);
+    if (query?.sortOrder) params.append('sortOrder', query.sortOrder);
     
     const url = `${API_BASE_URL}/products?${params.toString()}`;
     const response = await fetch(url);
@@ -102,7 +122,13 @@ export async function fetchProducts(
     }
     
     const data: ProductsResponse = await response.json();
-    return data.data || [];
+    const meta = data.meta || {
+      page: 1,
+      perPage: data.data?.length || 0,
+      total: data.data?.length || 0,
+      totalPages: 1,
+    };
+    return { data: data.data || [], meta };
   } catch (error) {
     console.error('Error fetching products:', error);
     throw error;
@@ -191,6 +217,19 @@ export interface OrderQuery {
   sortOrder?: 'asc' | 'desc';
 }
 
+export interface NewOrdersResponse {
+  newCount: number;
+  latestCreatedAt: string | null;
+  latestOrders: Array<{
+    id: number;
+    orderNumber: string;
+    customerName: string;
+    status: string;
+    totalCents: number | null;
+    createdAt: string;
+  }>;
+}
+
 /**
  * Fetch orders with filters, pagination, sorting
  */
@@ -227,6 +266,18 @@ export async function getOrders(params: OrderQuery = {}): Promise<OrderListRespo
   }
 }
 
+export async function getNewOrdersSince(since?: string | null): Promise<NewOrdersResponse> {
+  const query = new URLSearchParams();
+  if (since) query.append('since', since);
+
+  const response = await fetch(`${API_BASE_URL}/orders/new${query.toString() ? `?${query.toString()}` : ''}`);
+  if (!response.ok) {
+    throw new Error(`Failed to check new orders: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
 export async function exportOrdersCsv(params: OrderQuery = {}): Promise<Blob> {
   const query = new URLSearchParams();
   if (params.q) query.append('q', params.q);
@@ -250,6 +301,61 @@ export interface MetaSummary {
   revenue: number;
 }
 
+export interface SalesSummary {
+  rangeDays: number;
+  from: string;
+  to: string;
+  revenue: number;
+  orders: number;
+  averageOrderValue: number;
+  pendingValue: number;
+  pendingCount: number;
+  paidCount: number;
+  completedCount: number;
+  cancelledCount: number;
+}
+
+export interface SalesTrendPoint {
+  date: string;
+  revenue: number;
+  orders: number;
+}
+
+export interface SalesTrendsResponse {
+  rangeDays: number;
+  from: string;
+  to: string;
+  points: SalesTrendPoint[];
+}
+
+export interface SalesTopProduct {
+  productId: number;
+  name: string;
+  coverImage: string | null;
+  stock: number;
+  quantity: number;
+  revenue: number;
+}
+
+export interface SalesTopProductsResponse {
+  rangeDays: number;
+  from: string;
+  to: string;
+  products: SalesTopProduct[];
+}
+
+export interface SalesStatusCount {
+  status: string;
+  count: number;
+}
+
+export interface SalesStatusCountsResponse {
+  rangeDays: number;
+  from: string;
+  to: string;
+  statuses: SalesStatusCount[];
+}
+
 export async function getMeta(): Promise<MetaSummary> {
   try {
     const response = await fetch(`${API_BASE_URL}/meta`);
@@ -264,6 +370,62 @@ export async function getMeta(): Promise<MetaSummary> {
     console.error('Error fetching metadata:', error);
     throw error;
   }
+}
+
+function buildRangeParams(rangeDays?: number) {
+  const params = new URLSearchParams();
+  if (rangeDays) {
+    params.append('rangeDays', String(rangeDays));
+  }
+  return params;
+}
+
+export async function getSalesSummary(rangeDays?: number): Promise<SalesSummary> {
+  const params = buildRangeParams(rangeDays);
+  const response = await fetch(`${API_BASE_URL}/sales/summary${params.toString() ? `?${params.toString()}` : ''}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch sales summary: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getSalesTrends(rangeDays?: number): Promise<SalesTrendsResponse> {
+  const params = buildRangeParams(rangeDays);
+  const response = await fetch(`${API_BASE_URL}/sales/trends${params.toString() ? `?${params.toString()}` : ''}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch sales trends: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getSalesTopProducts(rangeDays?: number, limit?: number): Promise<SalesTopProductsResponse> {
+  const params = buildRangeParams(rangeDays);
+  if (limit) {
+    params.append('limit', String(limit));
+  }
+
+  const response = await fetch(`${API_BASE_URL}/sales/top-products${params.toString() ? `?${params.toString()}` : ''}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch top products: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function getSalesStatusCounts(rangeDays?: number): Promise<SalesStatusCountsResponse> {
+  const params = buildRangeParams(rangeDays);
+  const response = await fetch(`${API_BASE_URL}/sales/status-counts${params.toString() ? `?${params.toString()}` : ''}`);
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch status counts: ${response.statusText}`);
+  }
+
+  return response.json();
 }
 
 /**
