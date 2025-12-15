@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
+    // Rewrite only paths that do NOT contain a file extension so static assets are served normally
+    { "source": "/((?!.*\\.).*)", "destination": "/index.html" }
   ]
 }
