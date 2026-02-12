@@ -11,44 +11,44 @@ const FAQ = () => {
 
   const faqs: FAQItem[] = [
     {
-      question: 'What is the minimum order quantity for custom jerseys?',
-      answer: 'Our minimum order quantity (MOQ) for custom team kits is 10 units. This allows small teams and clubs to access professional custom sportswear without large upfront costs.',
+      question: 'What sizes do you offer, and how do I choose the right fit?',
+      answer: 'Answer coming soon. Our team will confirm sizing guidance and charts.',
     },
     {
-      question: 'Do you ship internationally?',
-      answer: 'Yes, we ship worldwide! We partner with DHL, FedEx, and Ethiopian Airlines Cargo to ensure reliable delivery to all corners of the globe. Shipping times vary by destination.',
+      question: 'What materials are your jerseys made from?',
+      answer: 'Answer coming soon. We will share fabric details and performance specs.',
     },
     {
-      question: 'How long does it take to produce custom kits?',
-      answer: 'Custom kit production typically takes 4-6 weeks from design approval to delivery. This includes design mockups, sample approval, bulk production, and shipping.',
+      question: 'Do you offer custom kits for teams? What is the minimum order quantity?',
+      answer: 'Answer coming soon. We will confirm custom kit options and MOQ.',
     },
     {
-      question: 'Can I see a sample before placing a bulk order?',
-      answer: 'Absolutely! We provide physical samples for approval before beginning bulk production. Sample fees may apply but are often credited toward your final order.',
+      question: 'How long does production and delivery take?',
+      answer: 'Answer coming soon. Timelines vary by order size and location.',
     },
     {
-      question: 'What materials do you use?',
-      answer: 'We use high-performance polyester blends, often mixed with spandex or elastane for stretch. All materials are breathable, moisture-wicking, and designed for athletic performance.',
+      question: 'Which payment methods do you accept?',
+      answer: 'Answer coming soon. We will list available payment options.',
     },
     {
-      question: 'Do you offer team sponsorships?',
-      answer: 'Yes, we have an ambassador program for teams and athletes. Contact us with your team details, and we\'ll discuss potential partnership opportunities.',
+      question: 'Do you deliver outside Addis Ababa? What are the delivery costs?',
+      answer: 'Answer coming soon. We will provide delivery coverage and pricing.',
     },
     {
-      question: 'Can you match specific colors?',
-      answer: 'Yes, we offer Pantone color matching to ensure your team colors are reproduced accurately on your custom kits.',
+      question: 'Can customers return or exchange items? What is the return policy?',
+      answer: 'Answer coming soon. We will publish the return policy details.',
     },
     {
-      question: 'What printing methods do you use for logos?',
-      answer: 'We offer both sublimation printing (for full designs) and embroidery (for logos). Sublimation provides unlimited colors and doesn\'t fade, while embroidery gives a premium, textured look.',
+      question: 'Are bulk discounts available for teams or organizations?',
+      answer: 'Answer coming soon. We will share discount tiers and eligibility.',
     },
     {
-      question: 'Do you accept returns or exchanges?',
-      answer: 'Due to the custom nature of our products, we don\'t accept returns unless there\'s a manufacturing defect. We ensure quality through sample approval before production.',
+      question: 'How can customers contact support (phone, Telegram, email)?',
+      answer: 'Answer coming soon. We will add the official support channels.',
     },
     {
-      question: 'What payment methods do you accept?',
-      answer: 'We accept bank transfers, credit cards (Visa, Mastercard), and local payment methods like Telebirr for Ethiopian customers. Payment terms are discussed during the ordering process.',
+      question: 'Do you offer sponsorship or partnership packages for clubs?',
+      answer: 'Answer coming soon. We will outline partnership opportunities.',
     },
   ];
 
