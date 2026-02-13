@@ -1,4 +1,5 @@
 // API Service for backend communication
+import apiFetch from './fetcher';
 
 import { products as mockProducts, type Product as MockProduct } from '../data/products';
 
