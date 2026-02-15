@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { API_BASE_URL } from '../services/api';
+import apiFetch from '../services/fetcher';
 import { X, Upload, Loader2 } from 'lucide-react';
 
 interface CreateProductModalProps {
@@ -44,7 +45,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose
       const formData = new FormData();
       formData.append('image', file);
       
-      const response = await fetch(`${API_BASE_URL}/upload`, { 
+      const response = await apiFetch(`${API_BASE_URL}/upload`, { 
         method: 'POST', 
         body: formData 
       });
@@ -89,7 +90,7 @@ const CreateProductModal: React.FC<CreateProductModalProps> = ({ isOpen, onClose
         features: JSON.stringify(featuresArray),
       };
 
-      const response = await fetch(`${API_BASE_URL}/products`, {
+      const response = await apiFetch(`${API_BASE_URL}/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(productData),

@@ -36,7 +36,7 @@ function Sparkline({ points }: { points: number[] }) {
   const height = 140;
 
   if (!points.length) {
-    return <div className="h-[140px] flex items-center justify-center text-gray-500 text-sm">No data yet</div>;
+    return <div className="h-[140px] flex items-center justify-center text-gray-500 text-base">No data yet</div>;
   }
 
   const min = Math.min(...points);
@@ -230,7 +230,7 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-bold text-gray-900">Dashboard</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
         </div>
         <div className="flex items-center gap-2">
           {RANGE_OPTIONS.map((value) => (
@@ -263,9 +263,9 @@ export default function Dashboard() {
             <div key={card.title} className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="text-sm text-gray-600">{card.title}</p>
+                  <p className="text-base text-gray-600">{card.title}</p>
                   <p className="text-2xl font-semibold mt-2 text-gray-900">{card.value}</p>
-                  <p className="text-xs text-gray-500 mt-1">{card.subtitle}</p>
+                  <p className="text-sm text-gray-500 mt-1">{card.subtitle}</p>
                 </div>
                 <div className={`${card.accent} p-3 rounded-lg`}>
                   <Icon size={22} stroke={1.5} />
@@ -280,10 +280,10 @@ export default function Dashboard() {
         <div className="xl:col-span-2 bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <p className="text-sm text-gray-600">Revenue trend</p>
-              <p className="text-lg font-semibold text-gray-900">{summary ? formatCurrency(summary.revenue) : '—'}</p>
+              <p className="text-base text-gray-600">Revenue trend</p>
+              <p className="text-2xl font-semibold text-gray-900">{summary ? formatCurrency(summary.revenue) : '—'}</p>
             </div>
-            <div className="flex items-center gap-2 text-sm text-gray-600">
+            <div className="flex items-center gap-2 text-base text-gray-600">
               <IconChartAreaLine size={18} />
               <span>{trends.length ? `${trends.length} days` : 'No data'}</span>
             </div>
@@ -293,21 +293,21 @@ export default function Dashboard() {
           ) : (
             <Sparkline points={revenueSeries} />
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-sm text-gray-700">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 text-base text-gray-700">
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-500">Avg order value</p>
+              <p className="text-sm text-gray-500">Avg order value</p>
               <p className="font-semibold text-gray-900">{summary ? formatCurrency(summary.averageOrderValue) : '—'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-500">Paid orders</p>
+              <p className="text-sm text-gray-500">Paid orders</p>
               <p className="font-semibold text-gray-900">{summary ? formatNumber(summary.paidCount) : '—'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-500">Completed</p>
+              <p className="text-sm text-gray-500">Completed</p>
               <p className="font-semibold text-gray-900">{summary ? formatNumber(summary.completedCount) : '—'}</p>
             </div>
             <div className="bg-gray-50 rounded-lg p-3">
-              <p className="text-gray-500">Pending value</p>
+              <p className="text-sm text-gray-500">Pending value</p>
               <p className="font-semibold text-gray-900">{summary ? formatCurrency(summary.pendingValue) : '—'}</p>
             </div>
           </div>
@@ -315,14 +315,14 @@ export default function Dashboard() {
 
         <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
           <div className="flex items-center justify-between mb-3">
-            <p className="text-sm text-gray-600">Status mix</p>
+            <p className="text-base text-gray-600">Status mix</p>
             <IconCircleCheck size={18} className="text-emerald-600" />
           </div>
           <div className="flex flex-wrap gap-2">
             {statusBadges.map((badge) => (
               <span
                 key={badge.key}
-                className={`px-3 py-2 rounded-full text-sm font-medium ${badge.color}`}
+                className={`px-3 py-2 rounded-full text-base font-medium ${badge.color}`}
               >
                 {badge.label}
                 <span className="ml-2 text-gray-700">{statusMap[badge.key] || 0}</span>
@@ -334,8 +334,8 @@ export default function Dashboard() {
 
       <div className="bg-white border border-gray-200 rounded-lg shadow-sm">
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100">
-          <p className="text-sm text-gray-600">Top products</p>
-          <span className="text-xs text-gray-500">Based on paid & completed orders</span>
+          <p className="text-base text-gray-600">Top products</p>
+          <span className="text-sm text-gray-500">Based on paid & completed orders</span>
         </div>
         {loading ? (
           <div className="p-4 space-y-3">
@@ -358,13 +358,13 @@ export default function Dashboard() {
                     )}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-900">{product.name}</p>
-                    <p className="text-xs text-gray-500">{product.quantity} units • stock {product.stock}</p>
+                    <p className="text-base font-semibold text-gray-900">{product.name}</p>
+                    <p className="text-sm text-gray-500">{product.quantity} units • stock {product.stock}</p>
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-semibold text-gray-900">{formatCurrency(product.revenue)}</p>
-                  <p className="text-xs text-gray-500">{product.quantity} units</p>
+                  <p className="text-base font-semibold text-gray-900">{formatCurrency(product.revenue)}</p>
+                  <p className="text-sm text-gray-500">{product.quantity} units</p>
                 </div>
               </div>
             ))}

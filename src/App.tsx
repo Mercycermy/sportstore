@@ -22,6 +22,7 @@ import ProductsPage from './pages/admin/ProductsPage';
 import InvoicesPage from './pages/admin/InvoicesPage';
 import MessagesPage from './pages/admin/MessagesPage';
 import DiscountsPage from './pages/admin/DiscountsPage';
+import AdminLogin from './pages/admin/Login';
 import { CartProvider } from './contexts/CartContext';
 
 function App() {
@@ -60,6 +61,7 @@ function App() {
 
           {/* Admin routes without Header/Footer */}
           <Route path="/admin" element={<AdminLayout />}>
+            <Route path="login" element={<AdminLogin />} />
             <Route path="dashboard" element={<Dashboard />} />
             <Route path="orders" element={<OrdersPage />} />
             <Route path="products" element={<ProductsPage />} />
